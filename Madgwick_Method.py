@@ -187,6 +187,8 @@ for i in range(0,len(ax)-1):
 
 
         flag = 0
+ 
+
 
     An.append((ax[i]*q0*q0)+(ax[i]*q1*q1)-(ax[i]*q2*q2)+(2*az[i]*q0*q2)+(2*ay[i]*q1*q2)-(ax[i]*q3*q3)-(2*ay[i]*q0*q3)+(2*az[i]*q1*q3))
     Al.append((ay[i]*q0*q0)-(ay[i]*q1*q1)-(2*az[i]*q0*q1)+(ay[i]*q2*q2)+(2*ax[i]*q1*q2)-(ay[i]*q3*q3)+(2*ax[i]*q0*q3)+(2*az[i]*q2*q3))
@@ -202,7 +204,7 @@ for i in range(0,len(ax)-1):
 for i in range(0,len(An)):
     An[i] = An[i]*9.81
     Al[i] = Al[i]*9.81
-    Ab[i] = Ab[i]*9.81
+    Ab[i] = Ab[i]*9.81 
 
     roll[i] = roll[i]*180/np.pi
     pitch[i] = pitch[i]*180/np.pi
