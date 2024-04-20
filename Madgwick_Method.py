@@ -1,8 +1,9 @@
+from scipy import integrate
 import numpy as np
 import pandas as pd
 from Filtros_passa_baixa_passa_alta import *
 
-beta = 0.7 # Ganho entre os dados
+beta = 0.5 # Ganho entre os dados
 FrequenciaDados = 2 # 100 hz
 
 invSampleFreq = 1/FrequenciaDados # 1/dt
@@ -197,15 +198,48 @@ for i in range(0,len(ax)-1):
 
     time.append(invSampleFreq*i)
 
-    
+
+for i in range(0,len(An)):
+    An[i] = An[i]*9.81
+    Al[i] = Al[i]*9.81
+    Ab[i] = Ab[i]*9.81
+
+    roll[i] = roll[i]*180/np.pi
+    pitch[i] = pitch[i]*180/np.pi
+    yaw[i] = yaw[i]*180/np.pi
+
+Vn=[]
+Vl=[]
+Vb=[]
+
+
+
+Vn = (integrate.cumtrapz(highpass(An,invSampleFreq,1))).tolist()
+Vl = (integrate.cumtrapz(highpass(Al,invSampleFreq,1))).tolist()
+Vb = (integrate.cumtrapz(highpass(Ab,invSampleFreq,1))).tolist()
+
+Vn.append(0)
+Vl.append(0)
+Vb.append(0)
+
+vn_=np.array(Vn)
+vl_=np.array(Vl)
+vb_=np.array(Vb)
+
+V_modulo = (np.sqrt(vn_**2+vl_**2+vb_**2)).tolist()
+
 data_frame = {
-    'An' : An,
-    'Al' : Al,
-    'Ab' : Ab,
-    'Roll':roll,
-    'Pitch':pitch,
-    'Yaw' : yaw,
-    'time' : time
+    'An[m/s²]' : An,
+    'Al[m/s²]' : Al,
+    'Ab[m/s²]' : Ab,
+    'Roll[º]':roll,
+    'Pitch[º]':pitch,
+    'Yaw[º]' : yaw,
+    'Vn[m/s]' : Vn,
+    'Vl[m/s]' : Vl,
+    'Vb[m/s]' : Vb,
+    'V_mod[m/s]': V_modulo,
+    'time[s]' : time
 }
 
 out_name='output_file.xlsx'

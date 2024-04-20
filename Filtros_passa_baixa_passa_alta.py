@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def lowpass(x_n,dt,RC,IGNORE):
+def lowpass(x_n,dt,RC,IGNORE=[-0,1,0.1]):
     y=[]
     alpha = dt/(RC+dt)
     y.append(alpha*x_n[0])
@@ -12,15 +12,15 @@ def lowpass(x_n,dt,RC,IGNORE):
         y.append(resultado)
     return y
 
-def media(x_n,dt,RC,IGNORE):
+def media(x_n):
     y=[]
 
-    for i in range(1,len(x_n)):
+    for i in range(0,len(x_n)):
         resultado = (x_n[i]-x_n[i-1])/2
         y.append(resultado)
     return y
 
-def highpass(x_n,dt,RC,IGNORE):
+def highpass(x_n,dt,RC,IGNORE=[-0.1,0.1]):
     y=[]
     alpha = RC/(RC+dt)
     y.append(x_n[0])
