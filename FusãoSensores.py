@@ -1,10 +1,12 @@
 from scipy import integrate
 import numpy as np
 import pandas as pd
-from Filtros_passa_baixa_passa_alta import *
+from Filtros import *
+from FFT import fftPlot
+
 
 beta = 0.5 # Ganho entre os dados
-FrequenciaDados = 2 # 100 hz
+FrequenciaDados = 20 # 100 hz
 
 invSampleFreq = 1/FrequenciaDados # 1/dt
 
@@ -27,6 +29,7 @@ mz  = df_dados['mz'].to_list()
 # mz = np.zeros(len(ax))
 
 
+
 q0 = 1
 q1 = 0
 q2 = 0
@@ -45,6 +48,18 @@ Ab = []
 time =[]
 
 flag = 0
+
+# fftPlot(gx,dt=invSampleFreq,plot=True)
+# fftPlot(gy,dt=invSampleFreq,plot=True)
+# fftPlot(gz,dt=invSampleFreq,plot=True)
+
+ax = highpass(ax,invSampleFreq,0.18)
+ay = highpass(ay,invSampleFreq,0.31)
+az = highpass(az,invSampleFreq,0.18)
+
+
+Gravidade = [[],[],[]]
+
 
 for i in range(0,len(ax)-1):
 
@@ -198,10 +213,27 @@ for i in range(0,len(ax)-1):
     pitch.append(np.arcsin(-2.0 * (q1*q3 - q0*q2)))
     yaw.append(np.arctan2(q1*q2 + q0*q3, 0.5 - q2*q2 - q3*q3))
 
+    Gravidade[0].append(2*(q1*q3-q0*q2))
+    Gravidade[1].append(2*(q0*q1+q2*q3))
+    Gravidade[2].append(q0*q0-q1*q1-q2*q2-q3*q3)
+
     time.append(invSampleFreq*i)
 
 
+Minimum_Aceleration = 0.09
+
+
+
 for i in range(0,len(An)):
+
+    if(An[i]<=Minimum_Aceleration and An[i]>-Minimum_Aceleration):
+        An[i]=0
+    
+    if(Al[i]<=Minimum_Aceleration and Al[i]>-Minimum_Aceleration):
+        Al[i]=0
+        
+    if(Ab[i]<=Minimum_Aceleration and Ab[i]>-Minimum_Aceleration):
+        Ab[i]=0
     An[i] = An[i]*9.81
     Al[i] = Al[i]*9.81
     Ab[i] = Ab[i]*9.81 
@@ -210,25 +242,41 @@ for i in range(0,len(An)):
     pitch[i] = pitch[i]*180/np.pi
     yaw[i] = yaw[i]*180/np.pi
 
+
+
+
+
+
+
 Vn=[]
 Vl=[]
 Vb=[]
 
+fcan = 0.22
+fcal = 0.140
+fcab = 0.105
 
-
-Vn = (integrate.cumtrapz(highpass(An,invSampleFreq,1))).tolist()
-Vl = (integrate.cumtrapz(highpass(Al,invSampleFreq,1))).tolist()
-Vb = (integrate.cumtrapz(highpass(Ab,invSampleFreq,1))).tolist()
+Vn = (integrate.cumulative_trapezoid(highpass(An,invSampleFreq,fcan),dx=invSampleFreq)).tolist()
+Vl = (integrate.cumulative_trapezoid(highpass(Al,invSampleFreq,fcal),dx=invSampleFreq)).tolist()
+Vb = (integrate.cumulative_trapezoid(highpass(Ab,invSampleFreq,fcab),dx=invSampleFreq)).tolist()
 
 Vn.append(0)
 Vl.append(0)
 Vb.append(0)
+
+
 
 vn_=np.array(Vn)
 vl_=np.array(Vl)
 vb_=np.array(Vb)
 
 V_modulo = (np.sqrt(vn_**2+vl_**2+vb_**2)).tolist()
+
+Ax = ax.tolist()
+Ay = ay.tolist()
+Az= az.tolist()
+
+
 
 data_frame = {
     'An[m/s²]' : An,
@@ -241,7 +289,11 @@ data_frame = {
     'Vl[m/s]' : Vl,
     'Vb[m/s]' : Vb,
     'V_mod[m/s]': V_modulo,
-    'time[s]' : time
+    'time[s]' : time,
+    'Gravityx [g]':Gravidade[0],
+    'Gravityy [g]':Gravidade[1],
+    'Gravityz [g]':Gravidade[2]
+
 }
 
 out_name='output_file.xlsx'
